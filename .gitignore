@@ -1,0 +1,17 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+.env
+.medmnist/
+
+# Ignore PyTorch weights to save GitHub space (we use ONNX for deployment)
+*.pth
+*.pt
+
+# OS generated files
+.DS_Store
+Thumbs.db
