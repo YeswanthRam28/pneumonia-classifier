@@ -5,8 +5,10 @@ from dataset import get_dataloaders
 from model import get_model
 from tqdm import tqdm
 import os
+from sklearn.metrics import f1_score
 
-def train(num_epochs=5, batch_size=16, learning_rate=0.001):
+
+def train(num_epochs=6, batch_size=16, learning_rate=0.0002):
     if not torch.cuda.is_available():
         print("CRITICAL WARNING: GPU (CUDA) is NOT available to PyTorch.")
         print("Please ensure you have an NVIDIA GPU and installed the correct PyTorch CUDA version.")
@@ -28,7 +30,8 @@ def train(num_epochs=5, batch_size=16, learning_rate=0.001):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
-    best_val_loss = float('inf')
+    best_macro_f1 = 0.0
+
 
     # 4. Training Loop
     for epoch in range(num_epochs):
@@ -63,6 +66,8 @@ def train(num_epochs=5, batch_size=16, learning_rate=0.001):
         val_loss = 0.0
         correct_val = 0
         total_val = 0
+        all_preds = []
+        all_labels = []
 
         with torch.no_grad():
             for images, labels in tqdm(val_loader, desc="Validating"):
@@ -74,21 +79,27 @@ def train(num_epochs=5, batch_size=16, learning_rate=0.001):
                 _, predicted = torch.max(outputs.data, 1)
                 total_val += labels.size(0)
                 correct_val += (predicted == labels).sum().item()
+                all_preds.extend(predicted.cpu().numpy())
+                all_labels.extend(labels.cpu().numpy())
 
         val_loss = val_loss / len(val_loader.dataset)
         val_acc = 100 * correct_val / total_val
 
-        print(f"Train Loss: {train_loss:.4f} | Train Acc: {train_acc:.2f}%")
-        print(f"Val Loss: {val_loss:.4f} | Val Acc: {val_acc:.2f}%")
+        # Calculate Macro F1
+        val_macro_f1 = f1_score(all_labels, all_preds, average='macro')
 
-        # Save Best Model
-        if val_loss < best_val_loss:
-            best_val_loss = val_loss
+        print(f"Train Loss: {train_loss:.4f} | Train Acc: {train_acc:.2f}%")
+        print(f"Val Loss: {val_loss:.4f} | Val Acc: {val_acc:.2f}% | Val Macro F1: {val_macro_f1:.4f}")
+
+        # Save Best Model based on highest Macro F1
+        if val_macro_f1 > best_macro_f1:
+            best_macro_f1 = val_macro_f1
             torch.save(model.state_dict(), 'best_model.pth')
-            print("=> Saved new best model!")
+            print(f"=> Saved new best model! (Best Val Macro F1: {best_macro_f1:.4f})")
+
 
     print("\nTraining complete! Best model saved as 'best_model.pth'")
 
 if __name__ == '__main__':
-    # Run a quick training for 5 epochs
-    train(num_epochs=5)
+    # Run training for 6 epochs
+    train(num_epochs=6)

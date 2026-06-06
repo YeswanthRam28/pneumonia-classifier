@@ -39,5 +39,5 @@ def export_to_onnx(weights_path='best_model.pth', output_path='best_model.onnx',
     print("Export complete! You can now use this model in the browser.")
 
 if __name__ == '__main__':
-    # Pneumonia dataset has 2 classes
-    export_to_onnx(num_classes=2)
+    # We now use 5 classes for the ChestMNIST subset
+    export_to_onnx(num_classes=5)

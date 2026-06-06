@@ -11,6 +11,7 @@ env/
 # Ignore PyTorch weights to save GitHub space (we use ONNX for deployment)
 *.pth
 *.pt
+confusion_matrix.png
 
 # OS generated files
 .DS_Store

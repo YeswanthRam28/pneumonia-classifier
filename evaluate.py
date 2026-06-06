@@ -2,7 +2,11 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import classification_report, confusion_matrix
-import seaborn as sns
+try:
+    import seaborn as sns
+except ImportError:
+    sns = None
+
 from dataset import get_dataloaders
 from model import get_model
 
@@ -40,14 +44,18 @@ def evaluate():
     print(classification_report(all_labels, all_preds, target_names=class_names))
 
     # Confusion Matrix
-    cm = confusion_matrix(all_labels, all_preds)
-    plt.figure(figsize=(8, 6))
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=class_names, yticklabels=class_names)
-    plt.xlabel('Predicted')
-    plt.ylabel('Actual')
-    plt.title('Confusion Matrix - Lung Disease Classification')
-    plt.savefig('confusion_matrix.png')
-    print("\nSaved confusion matrix plot to 'confusion_matrix.png'")
+    if sns is not None:
+        cm = confusion_matrix(all_labels, all_preds)
+        plt.figure(figsize=(8, 6))
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=class_names, yticklabels=class_names)
+        plt.xlabel('Predicted')
+        plt.ylabel('Actual')
+        plt.title('Confusion Matrix - Lung Disease Classification')
+        plt.savefig('confusion_matrix.png')
+        print("\nSaved confusion matrix plot to 'confusion_matrix.png'")
+    else:
+        print("\nSeaborn not installed, skipping confusion matrix plot.")
+
 
 if __name__ == '__main__':
     evaluate()
